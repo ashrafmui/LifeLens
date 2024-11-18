@@ -74,8 +74,8 @@ for i in range(len(sleepData)-1):
 # avg_light, avg_deep, avg_rem = averageNorms(sleepGraph)
 
 weights = {
-    "Light Sleep": 0.55,
-    "Deep Sleep": 0.2,
+    "Light Sleep": 0.50,
+    "Deep Sleep": 0.25,
     "REM Sleep": 0.25
 }
 
@@ -177,48 +177,77 @@ def comparePhase(graph):
 sleepPerformance(sleepGraph)
 comparePhase(sleepGraph)
 
-for node_id, node in sleepGraph.nodes.items():
-    print(f"""
-    Cycle {node_id}:
-    WHOOP Performance Rating: {node.attributes['Whoop Performance']}
-    Sleep Performance: {node.attributes['Overall Sleep Performance']}
-    Light Sleep: {node.attributes['Light Sleep Performance']}
-    Deep Sleep: {node.attributes['Deep Sleep Performance']}
-    REM Sleep: {node.attributes['REM Sleep Performance']}
-    Average Sleep Phase Performance: {node.attributes['Average Sleep Phase Performance']}
-        """)
+# for node_id, node in sleepGraph.nodes.items():
+#     print(f"""
+#     Cycle {node_id}:
+#     WHOOP Performance Rating: {node.attributes['Whoop Performance']}
+#     Sleep Performance: {node.attributes['Overall Sleep Performance']}
+#     Light Sleep: {node.attributes['Light Sleep Performance']}
+#     Deep Sleep: {node.attributes['Deep Sleep Performance']}
+#     REM Sleep: {node.attributes['REM Sleep Performance']}
+#     Average Sleep Phase Performance: {node.attributes['Average Sleep Phase Performance']}
+#         """)
     
-sleepData['Sleep Date'] = pd.to_datetime(sleepData['Sleep onset']).dt.date
+# sleepData['Sleep Date'] = pd.to_datetime(sleepData['Sleep onset']).dt.date
 
-# Update data dictionary with Sleep Date instead of Cycle ID
-data = {
-    "Sleep Date": [],
-    "Average Sleep Phase Performance": [],
-    "Sleep Performance": [],
-    "WHOOP Performance Rating": []
-}
+# # Update data dictionary with Sleep Date instead of Cycle ID
+# data = {
+#     "Sleep Date": [],
+#     "Average Sleep Phase Performance": [],
+#     "Sleep Performance": [],
+#     "WHOOP Performance Rating": []
+# }
 
-for node_id, node in sleepGraph.nodes.items():
-    data["Sleep Date"].append(sleepData.loc[node_id, "Sleep Date"])  # Map node ID to Sleep Date
-    data["Average Sleep Phase Performance"].append(node.attributes["Average Sleep Phase Performance"]["Average Performance"])
-    data["Sleep Performance"].append(node.attributes["Overall Sleep Performance"])
-    data["WHOOP Performance Rating"].append(node.attributes["Whoop Performance"])
+# for node_id, node in sleepGraph.nodes.items():
+#     data["Sleep Date"].append(sleepData.loc[node_id, "Sleep Date"])  # Map node ID to Sleep Date
+#     data["Average Sleep Phase Performance"].append(node.attributes["Average Sleep Phase Performance"]["Average Performance"])
+#     data["Sleep Performance"].append(node.attributes["Overall Sleep Performance"])
+#     data["WHOOP Performance Rating"].append(node.attributes["Whoop Performance"])
 
-df = pd.DataFrame(data)
+# df = pd.DataFrame(data)
 
-# Plot the data
-plt.figure(figsize=(10, 6))
-plt.plot(df["Sleep Date"], df["Average Sleep Phase Performance"], label="Average Sleep Phase Performance", marker='o')
-plt.plot(df["Sleep Date"], df["Sleep Performance"], label="Sleep Performance", marker='s')
-plt.plot(df["Sleep Date"], df["WHOOP Performance Rating"], label="WHOOP Performance Rating", marker='^')
+# # Plot the data
+# plt.figure(figsize=(10, 6))
+# plt.plot(df["Sleep Date"], df["Average Sleep Phase Performance"], label="Average Sleep Phase Performance", marker='o')
+# plt.plot(df["Sleep Date"], df["Sleep Performance"], label="Sleep Performance", marker='s')
+# plt.plot(df["Sleep Date"], df["WHOOP Performance Rating"], label="WHOOP Performance Rating", marker='^')
 
-# Update labels and title
-plt.xlabel("Sleep Date")
-plt.ylabel("Performance (%)")
-plt.title("Comparison of Sleep Metrics Across Dates")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
+# # Update labels and title
+# plt.xlabel("Sleep Date")
+# plt.ylabel("Performance (%)")
+# plt.title("Comparison of Sleep Metrics Across Dates")
+# plt.legend()
+# plt.grid(True)
+# plt.tight_layout()
 
-# Show the plot
-plt.show()
+# # Show the plot
+# plt.show()
+
+def rankNodesBySleepPerformance(graph, attribute, descending=True):
+    node_data = []
+    # Collect nodes with valid attributes
+    for node_id, node in graph.nodes.items():
+        attribute_val = node.attributes.get(attribute)
+        if attribute_val is not None:
+            node_data.append((node_id, attribute_val))
+    
+    n = len(node_data)
+    # Bubble sort to rank nodes
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if (descending and node_data[j][1] < node_data[j + 1][1]) or \
+               (not descending and node_data[j][1] > node_data[j + 1][1]):
+                node_data[j], node_data[j + 1] = node_data[j + 1], node_data[j]
+    
+    # Assign rankings
+    ranked_nodes = []
+    for rank, (node_id, attr_value) in enumerate(node_data, start=1):
+        ranked_nodes.append((rank, node_id, attr_value))
+    
+    return ranked_nodes
+
+ranked = rankNodesBySleepPerformance(sleepGraph, "Overall Sleep Performance")
+
+print("Ranking by Overall Sleep Performance:")
+for rank, node_id, attr_value in ranked:
+    print(f"Rank {rank}: Node {node_id} with Overall Sleep Performance: {attr_value}")

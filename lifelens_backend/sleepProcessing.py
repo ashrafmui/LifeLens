@@ -1,5 +1,4 @@
 import pandas as pandas;
-import matplotlib.pyplot as plt
 
 #Processing and cleaning data
 sleepData = pandas.read_csv('sleeps.csv', nrows = 24)
